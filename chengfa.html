@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>幸运转盘</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      overflow-y: auto;
+      touch-action: manipulation;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: #fff;
+      padding: 16px 10px 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.45rem, 4vw, 2.35rem);
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: clamp(0.78rem, 2vw, 0.95rem);
+      margin-top: 6px;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      flex-shrink: 0;
+      width: min(94vw, 68vh, 640px);
+      height: min(94vw, 68vh, 640px);
+      padding: 10px;
+      box-sizing: content-box;
+    }
+
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+      box-shadow:
+        0 0 30px rgba(0, 0, 0, 0.5),
+        0 0 80px rgba(233, 69, 96, 0.12);
+    }
+
+    .pointer {
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+    }
+
+    .pointer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: clamp(10px, 2.4vw, 18px) solid transparent;
+      border-right: clamp(10px, 2.4vw, 18px) solid transparent;
+      border-top: clamp(20px, 4.8vw, 36px) solid #ff5c7a;
+    }
+
+    .pointer::after {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: clamp(10px, 2vw, 14px);
+      height: clamp(10px, 2vw, 14px);
+      background: #ff5c7a;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .wheel-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: clamp(42px, 10.5%, 66px);
+      height: clamp(42px, 10.5%, 66px);
+      background: #fff;
+      border-radius: 50%;
+      z-index: 5;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    .wheel-center::after {
+      content: "";
+      position: absolute;
+      inset: 34%;
+      border-radius: 50%;
+      background: #ff5c7a;
+      opacity: 0.95;
+    }
+
+    .btn {
+      margin-top: 16px;
+      padding: 12px 46px;
+      min-width: 210px;
+      font-size: clamp(1rem, 2.8vw, 1.2rem);
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(45deg, #e94560, #ff6b6b);
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(233, 69, 96, 0.35);
+      transition: all 0.25s ease;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
+
+    .btn:hover,
+    .btn:active {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 26px rgba(233, 69, 96, 0.55);
+    }
+
+    .btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: clamp(0.72rem, 1.8vw, 0.84rem);
+      color: rgba(255, 255, 255, 0.55);
+      text-align: center;
+      line-height: 1.45;
+      min-height: 20px;
+      max-width: min(92vw, 720px);
+      word-break: break-word;
+    }
+
+    .result-card {
+      width: min(94vw, 760px);
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(6px);
+      text-align: center;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result {
+      font-size: clamp(1rem, 2.8vw, 1.3rem);
+      opacity: 0;
+      transform: scale(0.92);
+      transition: all 0.45s ease;
+      line-height: 1.65;
+      max-width: 100%;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .result.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .result span {
+      color: #ffd76a;
+      font-weight: 800;
+      font-size: clamp(1.08rem, 3vw, 1.45rem);
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 999;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding-top: 14px;
+      }
+
+      .wheel-wrap {
+        width: 94vw;
+        height: 94vw;
+        padding: 8px;
+      }
+
+      .btn {
+        min-width: 180px;
+        padding: 11px 34px;
+        margin-top: 14px;
+      }
+
+      .result-card {
+        width: 95vw;
+        padding: 12px 14px;
+        border-radius: 14px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      h1 {
+        letter-spacing: 1px;
+      }
+
+      .wheel-wrap {
+        width: 96vw;
+        height: 96vw;
+        padding: 6px;
+      }
+
+      .wheel-center {
+        width: clamp(36px, 10%, 54px);
+        height: clamp(36px, 10%, 54px);
+      }
+
+      .btn {
+        margin-top: 12px;
+        padding: 10px 30px;
+      }
+
+      .result-card {
+        min-height: 62px;
+      }
+    }
+
+    @media (max-height: 620px) and (orientation: landscape) {
+      body {
+        justify-content: flex-start;
+        padding-top: 10px;
+      }
+
+      .header {
+        margin-bottom: 8px;
+      }
+
+      .wheel-wrap {
+        width: min(82vh, 58vw, 560px);
+        height: min(82vh, 58vw, 560px);
+        padding: 8px;
+      }
+
+      .btn {
+        margin-top: 10px;
+        padding: 9px 34px;
+      }
+
+      .status {
+        margin-top: 6px;
+      }
+
+      .result-card {
+        margin-top: 8px;
+        min-height: 54px;
+        padding: 10px 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <div class="header">
+      <h1>🎯 幸运转盘</h1>
+      <p class="subtitle">点击按钮，让命运来决定</p>
+    </div>
+
+    <div class="wheel-wrap" id="wheelWrap">
+      <div class="pointer"></div>
+      <canvas id="wheel"></canvas>
+      <div class="wheel-center"></div>
+    </div>
+
+    <button class="btn" id="spinBtn" disabled>正在加载</button>
+    <div class="status" id="loadStatus"></div>
+
+    <section class="result-card">
+      <div class="result" id="result"></div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("wheel");
+      const ctx = canvas.getContext("2d");
+      const spinBtn = document.getElementById("spinBtn");
+      const resultDiv = document.getElementById("result");
+      const loadStatusDiv = document.getElementById("loadStatus");
+      const wheelWrap = document.getElementById("wheelWrap");
+
+      let options = [];
+      let displayLabels = [];
+      let fullLabels = [];
+
+      const colors = [
+        "#E63946",
+        "#1D3557",
+        "#457B9D",
+        "#2A9D8F",
+        "#E9C46A",
+        "#F4A261",
+        "#264653",
+        "#8338EC",
+        "#06D6A0",
+        "#EF476F",
+        "#118AB2",
+        "#073B4C",
+        "#FF6B6B",
+        "#4ECDC4",
+        "#45B7D1"
+      ];
+
+      let currentAngle = 0;
+      let isSpinning = false;
+      let dpr = 1;
+      let canvasSize = 0;
+
+      const defaultOptions = [
+        "默认选项1",
+        "默认选项2",
+        "默认选项3",
+        "默认选项4"
+      ];
+
+      function resizeCanvas() {
+        const rect = wheelWrap.getBoundingClientRect();
+        const pad = parseFloat(getComputedStyle(wheelWrap).padding) || 10;
+        const size = Math.floor(Math.min(rect.width, rect.height) - pad * 2);
+
+        if (!size || size <= 0) {
+          return;
+        }
+
+        if (Math.abs(size - canvasSize) < 2) {
+          return;
+        }
+
+        canvasSize = size;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = size * dpr;
+        canvas.height = size * dpr;
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        if (options.length > 0) {
+          drawWheel();
+        }
+      }
+
+      function parseOptions(text) {
+        return String(text)
+          .replace(/^\uFEFF/, "")
+          .split(/\r?\n/)
+          .map(function (item) {
+            return item.trim();
+          })
+          .filter(function (item) {
+            if (!item) {
+              return false;
+            }
+
+            if (item === "```") {
+              return false;
+            }
+
+            if (item.indexOf("```") === 0) {
+              return false;
+            }
+
+            return true;
+          });
+      }
+
+      function buildDisplayLabels(items) {
+        fullLabels = items.slice();
+
+        displayLabels = items.map(function (text) {
+          return String(text).trim();
+        });
+      }
+
+      function initOptions(data, sourceText) {
+        if (Array.isArray(data)) {
+          options = data.map(function (item) {
+            return String(item).trim();
+          }).filter(function (item) {
+            return item.length > 0;
+          });
+        } else {
+          options = [];
+        }
+
+        if (options.length === 0) {
+          options = defaultOptions.slice();
+          sourceText = "options.txt 为空，已使用默认选项";
+        }
+
+        buildDisplayLabels(options);
+
+        loadStatusDiv.textContent = sourceText || "";
+        spinBtn.disabled = false;
+        spinBtn.textContent = "开始转动";
+
+        resizeCanvas();
+        drawWheel();
+      }
+
+      async function tryFetch() {
+        const optionsUrl = new URL("options.txt", window.location.href);
+        optionsUrl.searchParams.set("t", String(Date.now()));
+
+        loadStatusDiv.textContent = "正在读取 options.txt...";
+        spinBtn.disabled = true;
+        spinBtn.textContent = "正在加载";
+
+        try {
+          const res = await fetch(optionsUrl.href, {
+            cache: "no-store"
+          });
+
+          if (!res.ok) {
+            throw new Error("options.txt 加载失败，状态码：" + res.status);
+          }
+
+          const text = await res.text();
+          const parsed = parseOptions(text);
+
+          console.log("options.txt 请求地址：", optionsUrl.href);
+          console.log("options.txt 原始内容：", text);
+          console.log("解析后的选项：", parsed);
+
+          if (parsed.length > 0) {
+            initOptions(parsed, "已读取 options.txt，共 " + parsed.length + " 个选项");
+          } else {
+            initOptions(defaultOptions.slice(), "options.txt 内容为空，已使用默认选项");
+          }
+        } catch (error) {
+          console.error("读取 options.txt 失败：", error);
+          initOptions(defaultOptions.slice(), "读取 options.txt 失败，已使用默认选项");
+        }
+      }
+
+      function setFont(size) {
+        ctx.font = "bold " + size + "px -apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif";
+      }
+
+      function splitTextToLines(text, maxWidth, fontSize) {
+        setFont(fontSize);
+
+        const chars = String(text).split("");
+        const lines = [];
+        let line = "";
+
+        for (let i = 0; i < chars.length; i++) {
+          const char = chars[i];
+          const testLine = line + char;
+
+          if (ctx.measureText(testLine).width > maxWidth && line.length > 0) {
+            lines.push(line);
+            line = char;
+          } else {
+            line = testLine;
+          }
+        }
+
+        if (line) {
+          lines.push(line);
+        }
+
+        return lines;
+      }
+
+      function calcFullTextLayout(text, maxWidth, maxHeight) {
+        let fontSize = Math.min(20, Math.max(7, canvasSize * 0.038));
+        let lines = [];
+        let lineHeight = 0;
+
+        while (fontSize >= 5) {
+          lines = splitTextToLines(text, maxWidth, fontSize);
+          lineHeight = fontSize * 1.12;
+
+          const totalHeight = lines.length * lineHeight;
+
+          if (totalHeight <= maxHeight) {
+            return {
+              fontSize: fontSize,
+              lines: lines,
+              lineHeight: lineHeight
+            };
+          }
+
+          fontSize -= 0.5;
+        }
+
+        fontSize = 5;
+        lines = splitTextToLines(text, maxWidth, fontSize);
+        lineHeight = fontSize * 1.08;
+
+        return {
+          fontSize: fontSize,
+          lines: lines,
+          lineHeight: lineHeight
+        };
+      }
+
+      function drawWheel() {
+        if (!canvasSize || options.length === 0) {
+          return;
+        }
+
+        const size = canvasSize;
+        const cx = size / 2;
+        const cy = size / 2;
+        const padding = Math.max(12, size * 0.024);
+        const radius = size / 2 - padding;
+        const anglePer = Math.PI * 2 / options.length;
+
+        ctx.clearRect(0, 0, size, size);
+
+        for (let i = 0; i < options.length; i++) {
+          const startAngle = currentAngle + i * anglePer;
+          const endAngle = startAngle + anglePer;
+
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radius, startAngle, endAngle);
+          ctx.closePath();
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.68)";
+          ctx.lineWidth = Math.max(1, size * 0.002);
+          ctx.stroke();
+
+          drawSectorText({
+            cx: cx,
+            cy: cy,
+            radius: radius,
+            size: size,
+            startAngle: startAngle,
+            anglePer: anglePer,
+            text: displayLabels[i]
+          });
+        }
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + size * 0.008, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.lineWidth = Math.max(1.5, size * 0.003);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - size * 0.006, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.lineWidth = Math.max(2, size * 0.006);
+        ctx.stroke();
+      }
+
+      function drawSectorText(config) {
+        const cx = config.cx;
+        const cy = config.cy;
+        const radius = config.radius;
+        const size = config.size;
+        const startAngle = config.startAngle;
+        const anglePer = config.anglePer;
+        const text = config.text;
+
+        const textAngle = startAngle + anglePer / 2;
+        const normalizedAngle = ((textAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isOnLeft = normalizedAngle > Math.PI / 2 && normalizedAngle < Math.PI * 1.5;
+
+        const hubRadius = size * 0.105;
+        const outerPadding = size * 0.052;
+
+        const textStart = hubRadius + size * 0.035;
+        const textEnd = radius - outerPadding;
+        const textRadius = (textStart + textEnd) / 2;
+
+        const radialWidth = Math.max(30, textEnd - textStart);
+        const arcHeight = Math.max(24, textRadius * anglePer * 0.8);
+
+        const maxTextWidth = radialWidth;
+        const maxTextHeight = arcHeight;
+
+        const layout = calcFullTextLayout(text, maxTextWidth, maxTextHeight);
+        const totalHeight = layout.lines.length * layout.lineHeight;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(textAngle);
+        ctx.translate(textRadius, 0);
+
+        if (isOnLeft) {
+          ctx.rotate(Math.PI);
+        }
+
+        setFont(layout.fontSize);
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.lineJoin = "round";
+
+        let y = -totalHeight / 2 + layout.lineHeight / 2;
+
+        for (let i = 0; i < layout.lines.length; i++) {
+          const line = layout.lines[i];
+
+          ctx.lineWidth = Math.max(1.2, layout.fontSize * 0.18);
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.48)";
+          ctx.strokeText(line, 0, y);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(line, 0, y);
+
+          y += layout.lineHeight;
+        }
+
+        ctx.restore();
+      }
+
+      function spin() {
+        if (isSpinning || options.length === 0) {
+          return;
+        }
+
+        isSpinning = true;
+        spinBtn.disabled = true;
+        spinBtn.textContent = "转动中…";
+        resultDiv.classList.remove("show");
+        resultDiv.textContent = "";
+
+        const targetIndex = Math.floor(Math.random() * options.length);
+        const anglePer = Math.PI * 2 / options.length;
+        const twoPI = Math.PI * 2;
+
+        const pointerAngle = -Math.PI / 2;
+
+        const targetCenterAngle = currentAngle + targetIndex * anglePer + anglePer / 2;
+        const rawDelta = pointerAngle - targetCenterAngle;
+        const delta = ((rawDelta % twoPI) + twoPI) % twoPI;
+
+        const extraSpins = 5 + Math.floor(Math.random() * 4);
+        const startAngle = currentAngle;
+        const endAngle = startAngle + extraSpins * twoPI + delta;
+
+        const duration = 4300;
+        const startTime = performance.now();
+
+        function animate(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 4);
+
+          currentAngle = startAngle + (endAngle - startAngle) * ease;
+          drawWheel();
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            currentAngle = ((endAngle % twoPI) + twoPI) % twoPI;
+            drawWheel();
+
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.textContent = "再转一次";
+
+            showResult(fullLabels[targetIndex]);
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      function showResult(winner) {
+        resultDiv.innerHTML = "";
+
+        const prefix = document.createTextNode("🎉 抽中：");
+        const span = document.createElement("span");
+
+        span.textContent = winner;
+
+        resultDiv.appendChild(prefix);
+        resultDiv.appendChild(span);
+        resultDiv.classList.add("show");
+
+        createConfetti();
+      }
+
+      function createConfetti() {
+        const palette = ["#e94560", "#ffd700", "#16c79a", "#00bbf9", "#ff6b6b", "#ffffff"];
+        const count = Math.min(48, window.innerWidth < 500 ? 24 : 48);
+
+        for (let i = 0; i < count; i++) {
+          const confetti = document.createElement("div");
+
+          confetti.className = "confetti";
+          confetti.style.left = Math.random() * 100 + "vw";
+          confetti.style.top = "-10px";
+          confetti.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+
+          const size = Math.random() * 8 + 4;
+
+          confetti.style.width = size + "px";
+          confetti.style.height = size + "px";
+          confetti.style.borderRadius = Math.random() > 0.5 ? "50%" : "0";
+          confetti.style.animationDuration = Math.random() * 2 + 2 + "s";
+
+          document.body.appendChild(confetti);
+
+          setTimeout(function () {
+            confetti.remove();
+          }, 4000);
+        }
+      }
+
+      spinBtn.addEventListener("click", spin);
+
+      let resizeTimer;
+
+      window.addEventListener("resize", function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          resizeCanvas();
+        }, 150);
+      });
+
+      window.addEventListener("orientationchange", function () {
+        setTimeout(function () {
+          resizeCanvas();
+        }, 300);
+      });
+
+      resizeCanvas();
+      tryFetch();
+    })();
+  </script>
+</body>
+</html>
