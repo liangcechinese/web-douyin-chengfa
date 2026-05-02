@@ -53,14 +53,12 @@
             width: clamp(10px, 2vw, 13px); height: clamp(10px, 2vw, 13px);
             background: #e94560; border-radius: 50%; border: 2px solid #fff;
         }
-        .hub {
+        .wheel-center {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 11%; height: 11%;
+            width: clamp(44px, 12%, 64px); height: clamp(44px, 12%, 64px);
             background: #fff; border-radius: 50%; z-index: 5;
-            box-shadow: 0 0 12px rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: #e94560;
-            font-size: clamp(0.55rem, 1.6vw, 0.75rem);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            pointer-events: none;
         }
 
         .btn {
@@ -121,7 +119,7 @@
     <div class="wheel-wrap" id="wheelWrap">
         <div class="pointer"></div>
         <canvas id="wheel"></canvas>
-        <div class="hub">GO</div>
+        <div class="wheel-center"></div>
     </div>
 
     <button class="btn" id="spinBtn" disabled>开始转动</button>
