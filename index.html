@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>幸运转盘</title>
 
   <style>
@@ -163,7 +163,7 @@
       margin-top: 2vh;
       text-align: center;
       flex-shrink: 0;
-      min-height: 72px;
+      min-height: 76px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -243,7 +243,7 @@
 
       .result-area {
         margin-top: 1vh;
-        min-height: 40px;
+        min-height: 50px;
       }
     }
 
@@ -289,9 +289,21 @@
       let fullLabels = [];
 
       const colors = [
-        "#E63946", "#1D3557", "#457B9D", "#2A9D8F", "#E9C46A",
-        "#F4A261", "#264653", "#8338EC", "#06D6A0", "#EF476F",
-        "#118AB2", "#073B4C", "#FF6B6B", "#4ECDC4", "#45B7D1"
+        "#E63946",
+        "#1D3557",
+        "#457B9D",
+        "#2A9D8F",
+        "#E9C46A",
+        "#F4A261",
+        "#264653",
+        "#8338EC",
+        "#06D6A0",
+        "#EF476F",
+        "#118AB2",
+        "#073B4C",
+        "#FF6B6B",
+        "#4ECDC4",
+        "#45B7D1"
       ];
 
       let currentAngle = 0;
@@ -317,8 +329,13 @@
         const pad = parseFloat(getComputedStyle(wheelWrap).padding) || 10;
         const size = Math.floor(Math.min(rect.width, rect.height) - pad * 2);
 
-        if (!size || size <= 0) return;
-        if (Math.abs(size - canvasSize) < 2) return;
+        if (!size || size <= 0) {
+          return;
+        }
+
+        if (Math.abs(size - canvasSize) < 2) {
+          return;
+        }
 
         canvasSize = size;
         dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -338,28 +355,38 @@
       function parseOptions(text) {
         return String(text)
           .split(/\r?\n/)
-          .map(item => item.trim())
-          .filter(item => item.length > 0);
+          .map(function (item) {
+            return item.trim();
+          })
+          .filter(function (item) {
+            return item.length > 0;
+          });
       }
 
       function buildDisplayLabels(items) {
-        fullLabels = [...items];
+        fullLabels = items.slice();
 
-        displayLabels = items.map(text => {
-          if (items.length > 10 && text.length > 6) {
-            return text.slice(0, 6) + "…";
+        displayLabels = items.map(function (text, index) {
+          const cleanText = String(text).trim();
+
+          if (cleanText.length <= 6) {
+            return cleanText;
           }
 
-          if (text.length > 14) {
-            return text.slice(0, 14) + "…";
-          }
-
-          return text;
+          return "选项" + (index + 1);
         });
       }
 
       function initOptions(data) {
-        options = Array.isArray(data) ? data.map(String).filter(Boolean) : [];
+        if (Array.isArray(data)) {
+          options = data.map(function (item) {
+            return String(item).trim();
+          }).filter(function (item) {
+            return item.length > 0;
+          });
+        } else {
+          options = [];
+        }
 
         if (options.length === 0) {
           options = ["选项1", "选项2", "选项3", "选项4"];
@@ -376,7 +403,9 @@
 
       async function tryFetch() {
         try {
-          const res = await fetch("options.txt", { cache: "no-store" });
+          const res = await fetch("options.txt", {
+            cache: "no-store"
+          });
 
           if (!res.ok) {
             throw new Error("options.txt 加载失败");
@@ -385,14 +414,18 @@
           const text = await res.text();
           const parsed = parseOptions(text);
 
-          initOptions(parsed.length ? parsed : defaultOptions);
+          if (parsed.length > 0) {
+            initOptions(parsed);
+          } else {
+            initOptions(defaultOptions.slice());
+          }
         } catch (error) {
-          initOptions([...defaultOptions]);
+          initOptions(defaultOptions.slice());
         }
       }
 
       function setFont(size) {
-        ctx.font = `bold ${size}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+        ctx.font = "bold " + size + "px -apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif";
       }
 
       function wrapText(text, maxWidth, fontSize) {
@@ -402,7 +435,8 @@
         const lines = [];
         let line = "";
 
-        for (const char of chars) {
+        for (let i = 0; i < chars.length; i++) {
+          const char = chars[i];
           const testLine = line + char;
 
           if (ctx.measureText(testLine).width > maxWidth && line.length > 0) {
@@ -421,11 +455,11 @@
       }
 
       function calcBestFont(text, maxWidth, maxHeight) {
-        let size = Math.max(10, Math.min(22, canvasSize * 0.04));
+        let size = Math.max(12, Math.min(24, canvasSize * 0.05));
         let lines = [];
         let fit = false;
 
-        while (size >= 9 && !fit) {
+        while (size >= 10 && !fit) {
           lines = wrapText(text, maxWidth, size);
 
           const lineHeight = size + Math.max(2, size * 0.1);
@@ -434,31 +468,33 @@
           if (totalHeight <= maxHeight) {
             fit = true;
           } else {
-            size -= Math.max(1, Math.floor(size * 0.15));
+            size -= 1;
           }
         }
 
         if (!fit) {
-          size = 9;
+          size = 10;
           lines = wrapText(text, maxWidth, size);
         }
 
         return {
-          size,
-          lines,
+          size: size,
+          lines: lines,
           lineHeight: size + Math.max(2, size * 0.1)
         };
       }
 
       function drawWheel() {
-        if (!canvasSize || options.length === 0) return;
+        if (!canvasSize || options.length === 0) {
+          return;
+        }
 
         const size = canvasSize;
         const cx = size / 2;
         const cy = size / 2;
         const padding = Math.max(12, size * 0.025);
         const radius = size / 2 - padding;
-        const anglePer = (Math.PI * 2) / options.length;
+        const anglePer = Math.PI * 2 / options.length;
 
         ctx.clearRect(0, 0, size, size);
 
@@ -477,49 +513,15 @@
           ctx.lineWidth = Math.max(1, size * 0.002);
           ctx.stroke();
 
-          ctx.save();
-          ctx.translate(cx, cy);
-
-          const textAngle = startAngle + anglePer / 2;
-          ctx.rotate(textAngle);
-
-          const normalizedAngle = ((textAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-          const isOnLeft = normalizedAngle > Math.PI / 2 && normalizedAngle < Math.PI * 1.5;
-
-          if (isOnLeft) {
-            ctx.rotate(Math.PI);
-          }
-
-          const hubRadius = size * 0.075;
-          const textStart = hubRadius + size * 0.04;
-          const textEnd = radius - size * 0.035;
-          const textRadius = (textStart + textEnd) / 2;
-          const availableWidth = Math.max(20, textEnd - textStart);
-          const availableHeight = Math.max(12, radius * anglePer * 0.52);
-
-          ctx.translate(textRadius, 0);
-
-          const info = calcBestFont(displayLabels[i], availableWidth, availableHeight);
-          const totalHeight = info.lines.length * info.lineHeight;
-
-          let y = -totalHeight / 2 + info.lineHeight / 2;
-
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-
-          info.lines.forEach(line => {
-            ctx.lineWidth = Math.max(2, info.size * 0.16);
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
-            ctx.lineJoin = "round";
-            ctx.strokeText(line, 0, y);
-
-            ctx.fillStyle = "#fff";
-            ctx.fillText(line, 0, y);
-
-            y += info.lineHeight;
+          drawSectorText({
+            cx: cx,
+            cy: cy,
+            radius: radius,
+            size: size,
+            startAngle: startAngle,
+            anglePer: anglePer,
+            text: displayLabels[i]
           });
-
-          ctx.restore();
         }
 
         ctx.beginPath();
@@ -527,10 +529,73 @@
         ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
         ctx.lineWidth = Math.max(1.5, size * 0.003);
         ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - size * 0.006, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.28)";
+        ctx.lineWidth = Math.max(2, size * 0.006);
+        ctx.stroke();
+      }
+
+      function drawSectorText(config) {
+        const cx = config.cx;
+        const cy = config.cy;
+        const radius = config.radius;
+        const size = config.size;
+        const startAngle = config.startAngle;
+        const anglePer = config.anglePer;
+        const text = config.text;
+
+        const textAngle = startAngle + anglePer / 2;
+        const normalizedAngle = ((textAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const isOnLeft = normalizedAngle > Math.PI / 2 && normalizedAngle < Math.PI * 1.5;
+
+        const hubRadius = size * 0.09;
+        const textStart = hubRadius + size * 0.04;
+        const textEnd = radius - size * 0.06;
+        const textRadius = (textStart + textEnd) / 2;
+        const availableWidth = Math.max(28, textEnd - textStart);
+        const availableHeight = Math.max(16, radius * anglePer * 0.46);
+
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        ctx.rotate(textAngle);
+        ctx.translate(textRadius, 0);
+
+        if (isOnLeft) {
+          ctx.rotate(Math.PI);
+        }
+
+        const info = calcBestFont(text, availableWidth, availableHeight);
+        const totalHeight = info.lines.length * info.lineHeight;
+
+        let y = -totalHeight / 2 + info.lineHeight / 2;
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let i = 0; i < info.lines.length; i++) {
+          const line = info.lines[i];
+
+          ctx.lineWidth = Math.max(2, info.size * 0.16);
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+          ctx.lineJoin = "round";
+          ctx.strokeText(line, 0, y);
+
+          ctx.fillStyle = "#fff";
+          ctx.fillText(line, 0, y);
+
+          y += info.lineHeight;
+        }
+
+        ctx.restore();
       }
 
       function spin() {
-        if (isSpinning || options.length === 0) return;
+        if (isSpinning || options.length === 0) {
+          return;
+        }
 
         isSpinning = true;
         spinBtn.disabled = true;
@@ -539,7 +604,7 @@
         resultDiv.textContent = "";
 
         const targetIndex = Math.floor(Math.random() * options.length);
-        const anglePer = (Math.PI * 2) / options.length;
+        const anglePer = Math.PI * 2 / options.length;
         const twoPI = Math.PI * 2;
 
         const pointerAngle = -Math.PI / 2;
@@ -598,7 +663,7 @@
       }
 
       function createConfetti() {
-        const palette = ["#e94560", "#ffd700", "#16c79a", "#00bbf9", "#ff6b6b", "#fff"];
+        const palette = ["#e94560", "#ffd700", "#16c79a", "#00bbf9", "#ff6b6b", "#ffffff"];
         const count = Math.min(50, window.innerWidth < 500 ? 28 : 50);
 
         for (let i = 0; i < count; i++) {
@@ -618,7 +683,7 @@
 
           document.body.appendChild(confetti);
 
-          setTimeout(() => {
+          setTimeout(function () {
             confetti.remove();
           }, 4000);
         }
@@ -628,13 +693,17 @@
 
       let resizeTimer;
 
-      window.addEventListener("resize", () => {
+      window.addEventListener("resize", function () {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(resizeCanvas, 150);
+        resizeTimer = setTimeout(function () {
+          resizeCanvas();
+        }, 150);
       });
 
-      window.addEventListener("orientationchange", () => {
-        setTimeout(resizeCanvas, 300);
+      window.addEventListener("orientationchange", function () {
+        setTimeout(function () {
+          resizeCanvas();
+        }, 300);
       });
 
       resizeCanvas();
