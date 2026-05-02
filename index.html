@@ -186,7 +186,10 @@
 
         /* ========== 数据解析 ========== */
         function parseOptions(text) {
-            return text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+            return text
+                .split(/\r?\n/)
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
         }
 
         function buildDisplayLabels(items) {
@@ -202,7 +205,7 @@
         }
 
         function initOptions(data) {
-            options = data;
+            options = Array.isArray(data) ? data.filter(Boolean) : [];
             if (options.length === 0) options = ['选项1','选项2','选项3','选项4'];
             buildDisplayLabels(options);
             optionsListDiv.textContent = '当前选项：' + options.join(' · ');
@@ -345,7 +348,7 @@
 
         /* ========== 旋转 ========== */
         function spin() {
-            if (isSpinning) return;
+            if (isSpinning || options.length === 0) return;
             isSpinning = true;
             spinBtn.disabled = true;
             spinBtn.textContent = '转动中…';
@@ -353,22 +356,38 @@
 
             const targetIdx = Math.floor(Math.random() * options.length);
             const anglePer = (Math.PI * 2) / options.length;
-            const extraSpins = 5 + Math.random() * 5;
-            const targetAngle = extraSpins * Math.PI * 2
-                + (Math.PI * 2 - targetIdx * anglePer - anglePer / 2 + Math.PI / 2);
+            const twoPI = Math.PI * 2;
 
+            // 顶部指针位置，对应 12 点钟方向
+            const pointerAngle = -Math.PI / 2;
+
+            // 当前目标扇区中心角
+            const targetCenterAngle = currentAngle + targetIdx * anglePer + anglePer / 2;
+
+            // 需要补上的角度，让目标扇区中心转到顶部指针
+            const rawDelta = pointerAngle - targetCenterAngle;
+            const delta = ((rawDelta % twoPI) + twoPI) % twoPI;
+
+            const extraSpins = 5 + Math.floor(Math.random() * 4);
             const startAngle = currentAngle;
-            const totalRot = targetAngle - startAngle;
+            const endAngle = startAngle + extraSpins * twoPI + delta;
+
             const duration = 4500;
             const startTime = performance.now();
 
             function animate(now) {
                 const p = Math.min((now - startTime) / duration, 1);
                 const ease = 1 - Math.pow(1 - p, 4);
-                currentAngle = startAngle + totalRot * ease;
+
+                currentAngle = startAngle + (endAngle - startAngle) * ease;
                 drawWheel();
-                if (p < 1) requestAnimationFrame(animate);
-                else {
+
+                if (p < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentAngle = ((endAngle % twoPI) + twoPI) % twoPI;
+                    drawWheel();
+
                     isSpinning = false;
                     spinBtn.disabled = false;
                     spinBtn.textContent = '再转一次';
@@ -378,8 +397,18 @@
             requestAnimationFrame(animate);
         }
 
+        function escapeHTML(str) {
+            return String(str).replace(/[&<>"']/g, ch => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[ch]));
+        }
+
         function showResult(winner) {
-            resultDiv.innerHTML = `🎉 结果：<span>${winner}</span> 🎉`;
+            resultDiv.innerHTML = `🎉 结果：<span>${escapeHTML(winner)}</span> 🎉`;
             resultDiv.classList.add('show');
             createConfetti();
         }
