@@ -163,7 +163,7 @@
       margin-top: 2vh;
       text-align: center;
       flex-shrink: 0;
-      min-height: 76px;
+      min-height: 82px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -203,6 +203,15 @@
       overflow-wrap: anywhere;
       max-height: 3.2em;
       overflow: hidden;
+    }
+
+    .load-status {
+      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: clamp(0.65rem, 1.6vw, 0.78rem);
+      max-width: min(90vw, 620px);
+      text-align: center;
+      line-height: 1.4;
     }
 
     .confetti {
@@ -268,11 +277,12 @@
     <div class="wheel-center"></div>
   </div>
 
-  <button class="btn" id="spinBtn" disabled>开始转动</button>
+  <button class="btn" id="spinBtn" disabled>正在加载</button>
 
   <div class="result-area">
     <div class="result" id="result"></div>
     <div class="options-list" id="optionsList"></div>
+    <div class="load-status" id="loadStatus"></div>
   </div>
 
   <script>
@@ -282,6 +292,7 @@
       const spinBtn = document.getElementById("spinBtn");
       const resultDiv = document.getElementById("result");
       const optionsListDiv = document.getElementById("optionsList");
+      const loadStatusDiv = document.getElementById("loadStatus");
       const wheelWrap = document.getElementById("wheelWrap");
 
       let options = [];
@@ -312,16 +323,10 @@
       let canvasSize = 0;
 
       const defaultOptions = [
-        "全程夹子音说话一分钟，不能破功",
-        "对着镜头深情表白对面主播 30 秒",
-        "模仿三种动物走路 + 叫声，连贯表演",
-        "双手比心，原地慢摇扭胯一分钟",
-        "用方言大声朗读对面主播的主页简介",
-        "闭眼随机夸直播间路人，每人一句话",
-        "单手托腮，装高冷面瘫三分钟不笑",
-        "唱一首跑调版儿歌，全程不能停",
-        "头顶纸巾 / 小物件，保持不掉坚持 1 分钟",
-        "假装害羞社恐，小声碎碎念自我介绍"
+        "默认选项1",
+        "默认选项2",
+        "默认选项3",
+        "默认选项4"
       ];
 
       function resizeCanvas() {
@@ -354,12 +359,25 @@
 
       function parseOptions(text) {
         return String(text)
+          .replace(/^\uFEFF/, "")
           .split(/\r?\n/)
           .map(function (item) {
             return item.trim();
           })
           .filter(function (item) {
-            return item.length > 0;
+            if (!item) {
+              return false;
+            }
+
+            if (item === "```") {
+              return false;
+            }
+
+            if (item.indexOf("```") === 0) {
+              return false;
+            }
+
+            return true;
           });
       }
 
@@ -377,7 +395,7 @@
         });
       }
 
-      function initOptions(data) {
+      function initOptions(data, sourceText) {
         if (Array.isArray(data)) {
           options = data.map(function (item) {
             return String(item).trim();
@@ -389,38 +407,54 @@
         }
 
         if (options.length === 0) {
-          options = ["选项1", "选项2", "选项3", "选项4"];
+          options = defaultOptions.slice();
+          sourceText = "使用默认选项";
         }
 
         buildDisplayLabels(options);
 
         optionsListDiv.textContent = "当前选项：" + options.join(" · ");
+        loadStatusDiv.textContent = sourceText || "";
+
         spinBtn.disabled = false;
+        spinBtn.textContent = "开始转动";
 
         resizeCanvas();
         drawWheel();
       }
 
       async function tryFetch() {
+        const optionsUrl = new URL("options.txt", window.location.href);
+        optionsUrl.searchParams.set("t", String(Date.now()));
+
+        loadStatusDiv.textContent = "正在读取 options.txt...";
+        spinBtn.disabled = true;
+        spinBtn.textContent = "正在加载";
+
         try {
-          const res = await fetch("options.txt", {
+          const res = await fetch(optionsUrl.href, {
             cache: "no-store"
           });
 
           if (!res.ok) {
-            throw new Error("options.txt 加载失败");
+            throw new Error("options.txt 加载失败，状态码：" + res.status);
           }
 
           const text = await res.text();
           const parsed = parseOptions(text);
 
+          console.log("options.txt 请求地址：", optionsUrl.href);
+          console.log("options.txt 原始内容：", text);
+          console.log("解析后的选项：", parsed);
+
           if (parsed.length > 0) {
-            initOptions(parsed);
+            initOptions(parsed, "已读取 options.txt，共 " + parsed.length + " 个选项");
           } else {
-            initOptions(defaultOptions.slice());
+            initOptions(defaultOptions.slice(), "options.txt 内容为空，已使用默认选项");
           }
         } catch (error) {
-          initOptions(defaultOptions.slice());
+          console.error("读取 options.txt 失败：", error);
+          initOptions(defaultOptions.slice(), "读取 options.txt 失败，已使用默认选项");
         }
       }
 
