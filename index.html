@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运转盘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+            letter-spacing: 4px;
+        }
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5), 0 0 100px rgba(233, 69, 96, 0.2);
+        }
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .pointer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #e94560;
+        }
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: #e94560;
+            border-radius: 50%;
+            border: 3px solid #fff;
+        }
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #e94560;
+            font-size: 0.8rem;
+        }
+        .btn {
+            padding: 15px 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(45deg, #e94560, #ff6b6b);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(233, 69, 96, 0.6);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .result {
+            margin-top: 25px;
+            font-size: 1.5rem;
+            min-height: 40px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+        .result.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .result span {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        .options-list {
+            margin-top: 15px;
+            color: #888;
+            font-size: 0.85rem;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        @media (max-width: 480px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 幸运转盘</h1>
+    <p class="subtitle">点击按钮，让命运来决定</p>
+    
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="800" height="800"></canvas>
+        <div class="center-circle">GO</div>
+    </div>
+    
+    <button class="btn" id="spinBtn">开始转动</button>
+    
+    <div class="result" id="result"></div>
+    <div class="options-list" id="optionsList"></div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const resultDiv = document.getElementById('result');
+        const optionsListDiv = document.getElementById('optionsList');
+        
+        // 转盘配置
+        let options = [];
+        let colors = [
+            '#e94560', '#0f3460', '#533483', '#f39422',
+            '#16c79a', '#ef476f', '#118ab2', '#073b4c',
+            '#9b5de5', '#00bbf9', '#00f5d4', '#fee440'
+        ];
+        
+        let currentAngle = 0;
+        let isSpinning = false;
+        
+        // 从本地文件读取选项
+        async function loadOptions() {
+            try {
+                const response = await fetch('options.txt');
+                if (!response.ok) throw new Error('无法读取文件');
+                const text = await response.text();
+                options = text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+            } catch (e) {
+                // 如果读取失败，使用默认选项
+                options = ['选项1', '选项2', '选项3', '选项4', '选项5', '选项6'];
+            }
+            
+            if (options.length === 0) {
+                options = ['选项1', '选项2', '选项3', '选项4'];
+            }
+            
+            optionsListDiv.textContent = '当前选项：' + options.join(' · ');
+            drawWheel();
+        }
+        
+        // 绘制转盘
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 20;
+            const anglePerSector = (Math.PI * 2) / options.length;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < options.length; i++) {
+                const startAngle = currentAngle + i * anglePerSector;
+                const endAngle = startAngle + anglePerSector;
+                
+                // 绘制扇形
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 绘制文字
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSector / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 36px "Microsoft YaHei", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(options[i], radius - 40, 12);
+                ctx.restore();
+            }
+            
+            // 外圈装饰
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // 旋转转盘
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.textContent = '转动中...';
+            resultDiv.classList.remove('show');
+            
+            // 随机决定停在哪个选项（额外转5-10圈）
+            const targetIndex = Math.floor(Math.random() * options.length);
+            const anglePerSector = (Math.PI * 2) / options.length;
+            
+            // 指针在顶部（-PI/2），需要计算目标角度
+            // 让目标选项停在指针位置
+            const extraSpins = 5 + Math.random() * 5; // 5-10圈
+            const targetAngle = extraSpins * Math.PI * 2 + (Math.PI * 2 - targetIndex * anglePerSector - anglePerSector / 2 + Math.PI / 2);
+            
+            const startAngle = currentAngle;
+            const totalRotation = targetAngle - startAngle;
+            const duration = 4000; // 4秒
+            const startTime = performance.now();
+            
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // 缓动函数：先快后慢
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentAngle = startAngle + totalRotation * easeOut;
+                
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.textContent = '再转一次';
+                    showResult(options[targetIndex]);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // 显示结果
+        function showResult(winner) {
+            resultDiv.innerHTML = `🎉 结果：<span>${winner}</span> 🎉`;
+            resultDiv.classList.add('show');
+            createConfetti();
+        }
+        
+        // 彩纸特效
+        function createConfetti() {
+            const colors = ['#e94560', '#ffd700', '#16c79a', '#00bbf9', '#ff6b6b', '#fff'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                confetti.style.opacity = Math.random();
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+        
+        spinBtn.addEventListener('click', spin);
+        
+        // 初始化
+        loadOptions();
+    </script>
+</body>
+</html>
