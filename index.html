@@ -24,39 +24,47 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       overflow-x: hidden;
       overflow-y: auto;
       touch-action: manipulation;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       color: #fff;
-      padding: 18px 12px;
+      padding: 16px 10px 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 2vh;
+      margin-bottom: 12px;
       flex-shrink: 0;
     }
 
     h1 {
-      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-size: clamp(1.45rem, 4vw, 2.35rem);
       text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
-      letter-spacing: 3px;
+      letter-spacing: 2px;
     }
 
     .subtitle {
-      color: #aaa;
-      font-size: clamp(0.75rem, 2vw, 0.9rem);
-      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: clamp(0.78rem, 2vw, 0.95rem);
+      margin-top: 6px;
     }
 
     .wheel-wrap {
       position: relative;
       flex-shrink: 0;
-      width: min(82vw, 62vh, 480px);
-      height: min(82vw, 62vh, 480px);
+      width: min(94vw, 68vh, 640px);
+      height: min(94vw, 68vh, 640px);
       padding: 10px;
       box-sizing: content-box;
     }
@@ -88,9 +96,9 @@
       transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: clamp(10px, 2.4vw, 17px) solid transparent;
-      border-right: clamp(10px, 2.4vw, 17px) solid transparent;
-      border-top: clamp(20px, 4.8vw, 34px) solid #e94560;
+      border-left: clamp(10px, 2.4vw, 18px) solid transparent;
+      border-right: clamp(10px, 2.4vw, 18px) solid transparent;
+      border-top: clamp(20px, 4.8vw, 36px) solid #ff5c7a;
     }
 
     .pointer::after {
@@ -99,9 +107,9 @@
       top: -5px;
       left: 50%;
       transform: translateX(-50%);
-      width: clamp(10px, 2vw, 13px);
-      height: clamp(10px, 2vw, 13px);
-      background: #e94560;
+      width: clamp(10px, 2vw, 14px);
+      height: clamp(10px, 2vw, 14px);
+      background: #ff5c7a;
       border-radius: 50%;
       border: 2px solid #fff;
     }
@@ -111,35 +119,36 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: clamp(44px, 12%, 64px);
-      height: clamp(44px, 12%, 64px);
+      width: clamp(42px, 10.5%, 66px);
+      height: clamp(42px, 10.5%, 66px);
       background: #fff;
       border-radius: 50%;
       z-index: 5;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
       pointer-events: none;
     }
 
     .wheel-center::after {
       content: "";
       position: absolute;
-      inset: 35%;
+      inset: 34%;
       border-radius: 50%;
-      background: #e94560;
-      opacity: 0.9;
+      background: #ff5c7a;
+      opacity: 0.95;
     }
 
     .btn {
-      margin-top: 2.5vh;
-      padding: clamp(10px, 2vh, 15px) clamp(36px, 8vw, 65px);
-      font-size: clamp(1rem, 2.5vw, 1.2rem);
-      font-weight: bold;
+      margin-top: 16px;
+      padding: 12px 46px;
+      min-width: 210px;
+      font-size: clamp(1rem, 2.8vw, 1.2rem);
+      font-weight: 700;
       color: #fff;
       background: linear-gradient(45deg, #e94560, #ff6b6b);
       border: none;
-      border-radius: 50px;
+      border-radius: 999px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+      box-shadow: 0 6px 18px rgba(233, 69, 96, 0.35);
       transition: all 0.25s ease;
       letter-spacing: 2px;
       flex-shrink: 0;
@@ -149,7 +158,7 @@
     .btn:hover,
     .btn:active {
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 25px rgba(233, 69, 96, 0.6);
+      box-shadow: 0 8px 26px rgba(233, 69, 96, 0.55);
     }
 
     .btn:disabled {
@@ -159,25 +168,40 @@
       transform: none;
     }
 
-    .result-area {
-      margin-top: 2vh;
+    .status {
+      margin-top: 10px;
+      font-size: clamp(0.72rem, 1.8vw, 0.84rem);
+      color: rgba(255, 255, 255, 0.55);
       text-align: center;
-      flex-shrink: 0;
-      min-height: 82px;
+      line-height: 1.45;
+      min-height: 20px;
+      max-width: min(92vw, 720px);
+      word-break: break-word;
+    }
+
+    .result-card {
+      width: min(94vw, 760px);
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(6px);
+      text-align: center;
+      min-height: 70px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 0 20px;
     }
 
     .result {
-      font-size: clamp(1rem, 3vw, 1.35rem);
+      font-size: clamp(1rem, 2.8vw, 1.3rem);
       opacity: 0;
-      transform: scale(0.8);
-      transition: all 0.5s ease;
-      line-height: 1.5;
-      max-width: min(90vw, 680px);
+      transform: scale(0.92);
+      transition: all 0.45s ease;
+      line-height: 1.65;
+      max-width: 100%;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
@@ -188,30 +212,9 @@
     }
 
     .result span {
-      color: #ffd700;
-      font-weight: bold;
-      font-size: clamp(1.15rem, 3.5vw, 1.55rem);
-    }
-
-    .options-list {
-      margin-top: 8px;
-      color: #aaa;
-      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
-      max-width: min(90vw, 620px);
-      line-height: 1.5;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-      max-height: 3.2em;
-      overflow: hidden;
-    }
-
-    .load-status {
-      margin-top: 4px;
-      color: rgba(255, 255, 255, 0.45);
-      font-size: clamp(0.65rem, 1.6vw, 0.78rem);
-      max-width: min(90vw, 620px);
-      text-align: center;
-      line-height: 1.4;
+      color: #ffd76a;
+      font-weight: 800;
+      font-size: clamp(1.08rem, 3vw, 1.45rem);
     }
 
     .confetti {
@@ -230,60 +233,115 @@
       }
     }
 
-    @media (max-height: 500px) and (orientation: landscape) {
+    @media (max-width: 680px) {
       body {
-        justify-content: flex-start;
-      }
-
-      .header {
-        margin-bottom: 1vh;
+        padding-top: 14px;
       }
 
       .wheel-wrap {
-        width: min(52vh, 42vw, 360px);
-        height: min(52vh, 42vw, 360px);
+        width: 94vw;
+        height: 94vw;
         padding: 8px;
       }
 
       .btn {
-        margin-top: 1.5vh;
-        padding: 8px 36px;
+        min-width: 180px;
+        padding: 11px 34px;
+        margin-top: 14px;
       }
 
-      .result-area {
-        margin-top: 1vh;
-        min-height: 50px;
+      .result-card {
+        width: 95vw;
+        padding: 12px 14px;
+        border-radius: 14px;
       }
     }
 
-    @media (max-width: 360px) {
+    @media (max-width: 380px) {
+      body {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      h1 {
+        letter-spacing: 1px;
+      }
+
       .wheel-wrap {
-        width: 86vw;
-        height: 86vw;
+        width: 96vw;
+        height: 96vw;
+        padding: 6px;
+      }
+
+      .wheel-center {
+        width: clamp(36px, 10%, 54px);
+        height: clamp(36px, 10%, 54px);
+      }
+
+      .btn {
+        margin-top: 12px;
+        padding: 10px 30px;
+      }
+
+      .result-card {
+        min-height: 62px;
+      }
+    }
+
+    @media (max-height: 620px) and (orientation: landscape) {
+      body {
+        justify-content: flex-start;
+        padding-top: 10px;
+      }
+
+      .header {
+        margin-bottom: 8px;
+      }
+
+      .wheel-wrap {
+        width: min(82vh, 58vw, 560px);
+        height: min(82vh, 58vw, 560px);
+        padding: 8px;
+      }
+
+      .btn {
+        margin-top: 10px;
+        padding: 9px 34px;
+      }
+
+      .status {
+        margin-top: 6px;
+      }
+
+      .result-card {
+        margin-top: 8px;
+        min-height: 54px;
+        padding: 10px 12px;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="header">
-    <h1>🎯 幸运转盘</h1>
-    <p class="subtitle">点击按钮，让命运来决定</p>
-  </div>
+  <main class="app">
+    <div class="header">
+      <h1>🎯 幸运转盘</h1>
+      <p class="subtitle">点击按钮，让命运来决定</p>
+    </div>
 
-  <div class="wheel-wrap" id="wheelWrap">
-    <div class="pointer"></div>
-    <canvas id="wheel"></canvas>
-    <div class="wheel-center"></div>
-  </div>
+    <div class="wheel-wrap" id="wheelWrap">
+      <div class="pointer"></div>
+      <canvas id="wheel"></canvas>
+      <div class="wheel-center"></div>
+    </div>
 
-  <button class="btn" id="spinBtn" disabled>正在加载</button>
+    <button class="btn" id="spinBtn" disabled>正在加载</button>
+    <div class="status" id="loadStatus"></div>
 
-  <div class="result-area">
-    <div class="result" id="result"></div>
-    <div class="options-list" id="optionsList"></div>
-    <div class="load-status" id="loadStatus"></div>
-  </div>
+    <section class="result-card">
+      <div class="result" id="result"></div>
+    </section>
+  </main>
 
   <script>
     (function () {
@@ -291,7 +349,6 @@
       const ctx = canvas.getContext("2d");
       const spinBtn = document.getElementById("spinBtn");
       const resultDiv = document.getElementById("result");
-      const optionsListDiv = document.getElementById("optionsList");
       const loadStatusDiv = document.getElementById("loadStatus");
       const wheelWrap = document.getElementById("wheelWrap");
 
@@ -384,14 +441,8 @@
       function buildDisplayLabels(items) {
         fullLabels = items.slice();
 
-        displayLabels = items.map(function (text, index) {
-          const cleanText = String(text).trim();
-
-          if (cleanText.length <= 6) {
-            return cleanText;
-          }
-
-          return "选项" + (index + 1);
+        displayLabels = items.map(function (text) {
+          return String(text).trim();
         });
       }
 
@@ -408,14 +459,12 @@
 
         if (options.length === 0) {
           options = defaultOptions.slice();
-          sourceText = "使用默认选项";
+          sourceText = "options.txt 为空，已使用默认选项";
         }
 
         buildDisplayLabels(options);
 
-        optionsListDiv.textContent = "当前选项：" + options.join(" · ");
         loadStatusDiv.textContent = sourceText || "";
-
         spinBtn.disabled = false;
         spinBtn.textContent = "开始转动";
 
@@ -462,7 +511,7 @@
         ctx.font = "bold " + size + "px -apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif";
       }
 
-      function wrapText(text, maxWidth, fontSize) {
+      function splitTextToLines(text, maxWidth, fontSize) {
         setFont(fontSize);
 
         const chars = String(text).split("");
@@ -485,36 +534,39 @@
           lines.push(line);
         }
 
-        return lines.length ? lines : [String(text)];
+        return lines;
       }
 
-      function calcBestFont(text, maxWidth, maxHeight) {
-        let size = Math.max(12, Math.min(24, canvasSize * 0.05));
+      function calcFullTextLayout(text, maxWidth, maxHeight) {
+        let fontSize = Math.min(20, Math.max(7, canvasSize * 0.038));
         let lines = [];
-        let fit = false;
+        let lineHeight = 0;
 
-        while (size >= 10 && !fit) {
-          lines = wrapText(text, maxWidth, size);
+        while (fontSize >= 5) {
+          lines = splitTextToLines(text, maxWidth, fontSize);
+          lineHeight = fontSize * 1.12;
 
-          const lineHeight = size + Math.max(2, size * 0.1);
           const totalHeight = lines.length * lineHeight;
 
           if (totalHeight <= maxHeight) {
-            fit = true;
-          } else {
-            size -= 1;
+            return {
+              fontSize: fontSize,
+              lines: lines,
+              lineHeight: lineHeight
+            };
           }
+
+          fontSize -= 0.5;
         }
 
-        if (!fit) {
-          size = 10;
-          lines = wrapText(text, maxWidth, size);
-        }
+        fontSize = 5;
+        lines = splitTextToLines(text, maxWidth, fontSize);
+        lineHeight = fontSize * 1.08;
 
         return {
-          size: size,
+          fontSize: fontSize,
           lines: lines,
-          lineHeight: size + Math.max(2, size * 0.1)
+          lineHeight: lineHeight
         };
       }
 
@@ -526,7 +578,7 @@
         const size = canvasSize;
         const cx = size / 2;
         const cy = size / 2;
-        const padding = Math.max(12, size * 0.025);
+        const padding = Math.max(12, size * 0.024);
         const radius = size / 2 - padding;
         const anglePer = Math.PI * 2 / options.length;
 
@@ -543,7 +595,7 @@
           ctx.fillStyle = colors[i % colors.length];
           ctx.fill();
 
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.68)";
           ctx.lineWidth = Math.max(1, size * 0.002);
           ctx.stroke();
 
@@ -560,13 +612,13 @@
 
         ctx.beginPath();
         ctx.arc(cx, cy, radius + size * 0.008, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
         ctx.lineWidth = Math.max(1.5, size * 0.003);
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(cx, cy, radius - size * 0.006, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.28)";
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
         ctx.lineWidth = Math.max(2, size * 0.006);
         ctx.stroke();
       }
@@ -584,16 +636,24 @@
         const normalizedAngle = ((textAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         const isOnLeft = normalizedAngle > Math.PI / 2 && normalizedAngle < Math.PI * 1.5;
 
-        const hubRadius = size * 0.09;
-        const textStart = hubRadius + size * 0.04;
-        const textEnd = radius - size * 0.06;
+        const hubRadius = size * 0.105;
+        const outerPadding = size * 0.052;
+
+        const textStart = hubRadius + size * 0.035;
+        const textEnd = radius - outerPadding;
         const textRadius = (textStart + textEnd) / 2;
-        const availableWidth = Math.max(28, textEnd - textStart);
-        const availableHeight = Math.max(16, radius * anglePer * 0.46);
+
+        const radialWidth = Math.max(30, textEnd - textStart);
+        const arcHeight = Math.max(24, textRadius * anglePer * 0.8);
+
+        const maxTextWidth = radialWidth;
+        const maxTextHeight = arcHeight;
+
+        const layout = calcFullTextLayout(text, maxTextWidth, maxTextHeight);
+        const totalHeight = layout.lines.length * layout.lineHeight;
 
         ctx.save();
         ctx.translate(cx, cy);
-
         ctx.rotate(textAngle);
         ctx.translate(textRadius, 0);
 
@@ -601,26 +661,25 @@
           ctx.rotate(Math.PI);
         }
 
-        const info = calcBestFont(text, availableWidth, availableHeight);
-        const totalHeight = info.lines.length * info.lineHeight;
-
-        let y = -totalHeight / 2 + info.lineHeight / 2;
+        setFont(layout.fontSize);
 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.lineJoin = "round";
 
-        for (let i = 0; i < info.lines.length; i++) {
-          const line = info.lines[i];
+        let y = -totalHeight / 2 + layout.lineHeight / 2;
 
-          ctx.lineWidth = Math.max(2, info.size * 0.16);
-          ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
-          ctx.lineJoin = "round";
+        for (let i = 0; i < layout.lines.length; i++) {
+          const line = layout.lines[i];
+
+          ctx.lineWidth = Math.max(1.2, layout.fontSize * 0.18);
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.48)";
           ctx.strokeText(line, 0, y);
 
-          ctx.fillStyle = "#fff";
+          ctx.fillStyle = "#ffffff";
           ctx.fillText(line, 0, y);
 
-          y += info.lineHeight;
+          y += layout.lineHeight;
         }
 
         ctx.restore();
@@ -651,7 +710,7 @@
         const startAngle = currentAngle;
         const endAngle = startAngle + extraSpins * twoPI + delta;
 
-        const duration = 4500;
+        const duration = 4300;
         const startTime = performance.now();
 
         function animate(now) {
@@ -681,16 +740,13 @@
       function showResult(winner) {
         resultDiv.innerHTML = "";
 
-        const prefix = document.createTextNode("🎉 结果：");
+        const prefix = document.createTextNode("🎉 抽中：");
         const span = document.createElement("span");
-        const suffix = document.createTextNode(" 🎉");
 
         span.textContent = winner;
 
         resultDiv.appendChild(prefix);
         resultDiv.appendChild(span);
-        resultDiv.appendChild(suffix);
-
         resultDiv.classList.add("show");
 
         createConfetti();
@@ -698,7 +754,7 @@
 
       function createConfetti() {
         const palette = ["#e94560", "#ffd700", "#16c79a", "#00bbf9", "#ff6b6b", "#ffffff"];
-        const count = Math.min(50, window.innerWidth < 500 ? 28 : 50);
+        const count = Math.min(48, window.innerWidth < 500 ? 24 : 48);
 
         for (let i = 0; i < count; i++) {
           const confetti = document.createElement("div");
